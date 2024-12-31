@@ -6,9 +6,6 @@ from dotenv import load_dotenv
 from src.experts import SportsExpert, FoodExpert, AIExpert, SudoStarExpert
 from src.core.expert_selector import ExpertSelector
 from config.config import EXPERT_CONFIG, APP_CONFIG
-import aiohttp
-import json
-from datetime import datetime
 
 # Configure logging
 logging.basicConfig(
@@ -55,33 +52,6 @@ def init_app():
     except Exception as e:
         logger.error(f"Error initializing application: {str(e)}")
         return False
-
-async def get_current_info(question):
-    """Get current information using Tavily API"""
-    try:
-        tavily_api_key = os.getenv('TAVILY_API_KEY')
-        if not tavily_api_key:
-            return None, "Tavily API anahtarı bulunamadı"
-
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                'https://api.tavily.com/search',
-                json={
-                    'api_key': tavily_api_key,
-                    'query': question,
-                    'search_depth': 'advanced',
-                    'include_answer': True
-                }
-            ) as response:
-                if response.status != 200:
-                    return None, "Tavily API'den yanıt alınamadı"
-                
-                data = await response.json()
-                return data.get('answer'), None
-
-    except Exception as e:
-        logger.error(f"Tavily API hatası: {str(e)}")
-        return None, str(e)
 
 @app.route('/')
 def home():
@@ -135,25 +105,7 @@ async def ask():
         question = data['question']
         logger.info(f"Received question: {question}")
         
-        # Güncel bilgi gerektiren soruları kontrol et
-        current_info_keywords = ['bugün', 'şu anda', 'hava', 'sıcaklık', 'döviz', 'kur', 'haber']
-        needs_current_info = any(keyword in question.lower() for keyword in current_info_keywords)
-        
-        if needs_current_info:
-            answer, error = await get_current_info(question)
-            if answer:
-                return jsonify({
-                    'status': 'success',
-                    'data': {
-                        'answer': answer,
-                        'expert_type': 'current_info'
-                    }
-                })
-            elif error:
-                logger.warning(f"Güncel bilgi alınamadı: {error}")
-                # Hata durumunda normal akışa devam et
-        
-        # Normal akış - Expert system
+        # Select expert and get response
         expert_type, direct_response = await expert_system['selector'].select_expert(question)
         logger.info(f"Selected expert: {expert_type}")
         
