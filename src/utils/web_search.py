@@ -3,7 +3,7 @@ import logging
 import os
 from typing import List, Optional, Dict, Any
 import aiohttp
-from tavily import TavilyClient
+from tavily.client import Client as TavilyClient
 
 class WebSearchClient:
     """Web search client using Tavily API"""
