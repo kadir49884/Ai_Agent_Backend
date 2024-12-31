@@ -6,9 +6,6 @@ from bs4 import BeautifulSoup
 from src.utils.openai_client import OpenAIClient
 from src.utils.web_search import WebSearch
 from src.utils.cache import Cache
-import time
-import openai
-import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -38,57 +35,41 @@ class ExpertBase:
             Optional[str]: Response or None if no answer found
         """
         try:
-            # 1. Try OpenAI first for most up-to-date response
-            if ai_answer := await self._get_ai_answer(question):
-                logger.info("Generated answer with OpenAI")
-                self.cache.set(question, {
-                    'response': ai_answer,
-                    'timestamp': time.time()
-                })
-                return ai_answer
-                
-            # 2. Check cache if AI fails
+            # Check cache first
             if cached := self.cache.get(question):
-                if time.time() - cached.get('timestamp', 0) < 3600:
-                    logger.info("Cache hit")
-                    return cached.get('response')
-                else:
-                    logger.info("Cache expired")
-                    self.cache.delete(question)
+                logger.info("Cache hit")
+                return cached
                 
-            # 3. Try local knowledge base
+            # 1. Try local knowledge base
             if local_answer := await self._get_local_answer(question):
                 logger.info("Found answer in local data")
-                self.cache.set(question, {
-                    'response': local_answer,
-                    'timestamp': time.time()
-                })
+                self.cache.set(question, local_answer)
                 return local_answer
                 
-            # 4. Try URL content
+            # 2. Try OpenAI
+            if ai_answer := await self._get_ai_answer(question):
+                logger.info("Generated answer with OpenAI")
+                self.cache.set(question, ai_answer)
+                return ai_answer
+                
+            # 3. Try URL content
             if url_answer := await self._get_url_content(question):
                 logger.info("Found answer in URL content")
-                self.cache.set(question, {
-                    'response': url_answer,
-                    'timestamp': time.time()
-                })
+                self.cache.set(question, url_answer)
                 return url_answer
                 
-            # 5. Try web search as last resort
+            # 4. Try web search
             if web_answer := await self._get_web_answer(question):
                 logger.info("Found answer from web search")
-                self.cache.set(question, {
-                    'response': web_answer,
-                    'timestamp': time.time()
-                })
+                self.cache.set(question, web_answer)
                 return web_answer
                 
             logger.warning("No answer found from any source")
-            return "Üzgünüm, bu soruya yanıt bulamadım. Lütfen soruyu farklı bir şekilde sormayı deneyin."
+            return None
             
         except Exception as e:
             logger.error(f"Error getting response: {str(e)}", exc_info=True)
-            return "Bir hata oluştu. Lütfen daha sonra tekrar deneyin."
+            return None
             
     async def _get_local_answer(self, question: str) -> Optional[str]:
         """Get answer from local knowledge base
@@ -121,33 +102,10 @@ class ExpertBase:
             Kullanıcının sorduğu soruları detaylı ve doğru şekilde yanıtla.
             Eğer soruyu yanıtlayamıyorsan veya emin değilsen, bunu belirt."""
             
-            max_retries = 3
-            retry_count = 0
-            
-            while retry_count < max_retries:
-                try:
-                    return await self.openai_client.get_completion(system_prompt, question)
-                except openai.error.RateLimitError:
-                    logger.warning("Rate limit hit, waiting before retry...")
-                    await asyncio.sleep(2 ** retry_count)  # Exponential backoff
-                    retry_count += 1
-                except openai.error.APIError as e:
-                    if "internal_server_error" in str(e):
-                        logger.warning("OpenAI server error, retrying...")
-                        await asyncio.sleep(1)
-                        retry_count += 1
-                    else:
-                        raise
-            
-            logger.error("Max retries reached for OpenAI API")
-            return "Üzgünüm, şu anda yanıt üretmekte sorun yaşıyorum. Lütfen daha sonra tekrar deneyin."
+            return await self.openai_client.get_completion(system_prompt, question)
             
         except Exception as e:
-            logger.error(f"Error getting AI answer: {str(e)}", exc_info=True)
-            if "insufficient_quota" in str(e):
-                return "API kotası doldu. Lütfen sistem yöneticisiyle iletişime geçin."
-            elif "invalid_api_key" in str(e):
-                return "API yapılandırma hatası. Lütfen sistem yöneticisiyle iletişime geçin."
+            logger.error(f"Error getting AI answer: {str(e)}")
             return None
             
     async def _get_url_content(self, question: str) -> Optional[str]:
