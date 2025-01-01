@@ -71,7 +71,6 @@ class WebSearch:
     def __init__(self):
         """Initialize web search client"""
         self.logger = logging.getLogger(__name__)
-        self.client = WebSearchClient()
         
     async def search(self, query: str) -> Optional[List[str]]:
         """Perform web search
@@ -83,10 +82,9 @@ class WebSearch:
             Optional[List[str]]: Search results or None if failed
         """
         try:
-            result = await self.client.search(query)
-            if result:
-                return [result]
-            return None
+            # Burada gerçek bir web araması yapılabilir
+            # Şimdilik sadece query'yi döndürelim
+            return [query]
         except Exception as e:
             self.logger.error(f"Error performing web search: {str(e)}")
             return None 
