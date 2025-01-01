@@ -1,4 +1,4 @@
-"""GeneralAssistant module for handling queries that don't match specialized experts"""
+"""GeneralAssistant module for handling general queries"""
 
 from .expert import GeneralAssistant
 

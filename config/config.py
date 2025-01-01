@@ -1,70 +1,94 @@
-"""Application configuration"""
 import os
-from typing import Dict, Any
+from dotenv import load_dotenv
 
-# Expert system configuration
-EXPERT_CONFIG: Dict[str, Dict[str, Any]] = {
+# Load environment variables
+load_dotenv()
+
+# Twitter API Configuration
+TWITTER_CONFIG = {
+    "API_KEY": os.getenv("TWITTER_API_KEY"),
+    "API_KEY_SECRET": os.getenv("TWITTER_API_KEY_SECRET"),
+    "BEARER_TOKEN": os.getenv("TWITTER_BEARER_TOKEN"),
+    "ACCESS_TOKEN": os.getenv("TWITTER_ACCESS_TOKEN"),
+    "ACCESS_TOKEN_SECRET": os.getenv("TWITTER_ACCESS_TOKEN_SECRET")
+}
+
+# OpenAI Configuration
+OPENAI_CONFIG = {
+    "API_KEY": os.getenv("OPENAI_API_KEY"),
+    'model': 'gpt-4',
+    'max_tokens': 300,
+    'temperature': 0.7
+}
+
+# Tavily API Configuration
+TAVILY_CONFIG = {
+    "API_KEY": os.getenv("TAVILY_API_KEY")
+}
+
+# Application Settings
+APP_CONFIG = {
+    'daily_tweet_limit': 50,
+    'check_interval': 60,  # seconds
+    'max_retries': 3,
+    'retry_delay': 60,  # seconds
+    'cache_enabled': True,
+    'cache_ttl': 3600  # 1 hour
+}
+
+# Expert System Configuration
+EXPERT_CONFIG = {
     'sports': {
-        'name': 'SportsExpert',
-        'description': 'Spor ve fitness konularında uzman AI asistan',
+        'cache_enabled': True,
+        'cache_ttl': 3600,
         'openai': {
             'model': 'gpt-4',
             'max_tokens': 300,
             'temperature': 0.7
+        },
+        'tavily': {
+            'max_results': 5,
+            'search_depth': 'advanced'
         }
     },
     'food': {
-        'name': 'FoodExpert',
-        'description': 'Yemek ve beslenme konularında uzman AI asistan',
+        'cache_enabled': True,
+        'cache_ttl': 3600,
         'openai': {
             'model': 'gpt-4',
             'max_tokens': 300,
             'temperature': 0.7
+        },
+        'tavily': {
+            'max_results': 5,
+            'search_depth': 'advanced'
         }
     },
     'ai': {
-        'name': 'AIExpert',
-        'description': 'Yapay zeka ve teknoloji konularında uzman AI asistan',
+        'cache_enabled': True,
+        'cache_ttl': 3600,
         'openai': {
             'model': 'gpt-4',
             'max_tokens': 300,
             'temperature': 0.7
+        },
+        'tavily': {
+            'max_results': 5,
+            'search_depth': 'advanced'
         }
     },
     'sudostar': {
-        'name': 'SudoStarExpert',
-        'description': 'SudoStar uygulaması hakkında uzman AI asistan',
+        'cache_enabled': True,
+        'cache_ttl': 3600,
         'openai': {
             'model': 'gpt-4',
             'max_tokens': 300,
             'temperature': 0.7
-        }
-    },
-    'general': {
-        'name': 'GeneralAssistant',
-        'description': 'Uzman bulunamayan konularda yardımcı olan genel amaçlı AI asistan',
-        'openai': {
-            'model': 'gpt-4',
-            'max_tokens': 500,  # Daha uzun yanıtlar için
-            'temperature': 0.8  # Daha yaratıcı yanıtlar için
-        },
-        'tavily': {
-            'api_key': os.getenv('TAVILY_API_KEY'),
-            'max_results': 5,
-            'search_depth': 'advanced'
-        },
-        'cache': {
-            'enabled': True,
-            'ttl': 1800  # 30 dakika
         }
     }
 }
 
-# Application configuration
-APP_CONFIG = {
-    'debug': True,
-    'host': '0.0.0.0',
-    'port': int(os.getenv('PORT', 5000)),
-    'log_level': 'INFO',
-    'cors_origins': ['*']
+# System Messages
+SYSTEM_MESSAGES = {
+    'openai_prompt': "Sen profesyonel ve arkadaş canlısı bir asistansın. En fazla 3 kısa cümle kullanarak, özlü ve yararlı yanıtlar vermelisin. Emoji kullanabilirsin."
 } 

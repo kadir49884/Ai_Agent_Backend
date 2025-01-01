@@ -1,15 +1,7 @@
-"""Expert modules"""
+"""Experts package"""
+from .ai.expert import AIExpert
+from .food.expert import FoodExpert
+from .sports.expert import SportsExpert
+from .sudostar.expert import SudoStarExpert
 
-from .ai import AIExpert
-from .food import FoodExpert
-from .sports import SportsExpert
-from .general_assistant import GeneralAssistant
-from .sudostar import SudoStarExpert
-
-__all__ = [
-    'AIExpert',
-    'FoodExpert',
-    'SportsExpert',
-    'GeneralAssistant',
-    'SudoStarExpert'
-] 
+__all__ = ['AIExpert', 'FoodExpert', 'SportsExpert', 'SudoStarExpert'] 
