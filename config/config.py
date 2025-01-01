@@ -42,31 +42,20 @@ EXPERT_CONFIG: Dict[str, Dict[str, Any]] = {
     },
     'general': {
         'name': 'GeneralExpert',
-        'description': 'Genel konularda uzman AI asistan',
+        'description': 'Her konuda temel düzeyde bilgi sahibi genel amaçlı AI asistan',
         'openai': {
             'model': 'gpt-4',
-            'max_tokens': 300,
-            'temperature': 0.7
+            'max_tokens': 500,  # Daha uzun yanıtlar için
+            'temperature': 0.8  # Daha yaratıcı yanıtlar için
         },
-        'accuweather': {
-            'api_key': os.getenv('ACCUWEATHER_API_KEY'),
-            'language': 'tr-tr',
-            'details': True
-        },
-        'news': {
-            'api_key': os.getenv('NEWS_API_KEY'),
-            'country': 'tr',
-            'language': 'tr'
+        'tavily': {
+            'api_key': os.getenv('TAVILY_API_KEY'),
+            'max_results': 5,
+            'search_depth': 'advanced'
         },
         'cache': {
             'enabled': True,
-            'ttl': {
-                'weather': 1800,     # 30 dakika
-                'exchange': 300,     # 5 dakika
-                'news': 600,        # 10 dakika
-                'traffic': 300,     # 5 dakika
-                'events': 3600      # 1 saat
-            }
+            'ttl': 1800  # 30 dakika
         }
     }
 }

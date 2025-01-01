@@ -1,68 +1,37 @@
 """General Expert için OpenAI promptları"""
 from typing import Dict, Any
 
-def get_system_prompt(expert_type: str) -> str:
+def get_system_prompt(expert_type: str = None) -> str:
     """Sistem promptunu getir"""
-    prompts = {
-        "weather": """Sen bir hava durumu uzmanısın.
-        Verilen hava durumu verilerini analiz edip kullanıcı dostu bir formatta sunmalısın.
-        Sıcaklık, nem, rüzgar gibi değerleri anlamlı bir şekilde yorumlamalısın.
-        Kullanıcıya giysi önerisi, aktivite önerisi gibi pratik tavsiyeler vermelisin.""",
-        
-        "exchange": """Sen bir finans uzmanısın.
-        Döviz kurlarını analiz edip anlaşılır bir dille açıklamalısın.
-        Değişimleri yüzdesel olarak belirtmeli ve trend analizini yapmalısın.
-        Gerektiğinde alım-satım için genel tavsiyelerde bulunabilirsin.""",
-        
-        "news": """Sen bir haber editörüsün.
-        Haberleri önem sırasına göre düzenlemeli ve özetlemelisin.
-        Tarafsız bir dil kullanmalı ve sadece doğrulanmış bilgileri aktarmalısın.
-        Gerektiğinde konuyla ilgili arka plan bilgisi vermelisin.""",
-        
-        "traffic": """Sen bir trafik uzmanısın.
-        Trafik durumunu analiz edip alternatif güzergahlar önermelisin.
-        Yoğunluk sebeplerini açıklamalı ve tahmini seyahat sürelerini belirtmelisin.
-        Toplu taşıma alternatiflerini de değerlendirmelisin.""",
-        
-        "event": """Sen bir etkinlik danışmanısın.
-        Etkinlikleri kategorilerine göre düzenlemeli ve detaylarını sunmalısın.
-        Etkinlik mekanı, ulaşım, bilet fiyatları gibi pratik bilgileri vermelisin.
-        Kullanıcının ilgi alanına göre önerilerde bulunmalısın."""
-    }
+    return """Sen çok yönlü ve bilgili bir asistansın.
+    Her türlü konuda yardımcı olabilecek kapasiteye sahipsin.
     
-    return prompts.get(expert_type, """Sen genel konularda uzman bir asistansın.
-    Verilen bilgileri analiz edip doğru ve anlaşılır yanıtlar üretmelisin.
-    Güncel ve güvenilir kaynaklara öncelik vermelisin.
-    Belirsizlik durumunda bunu açıkça belirtmelisin.""")
+    Yanıt üretirken şu kurallara uy:
+    1. Bilginin doğruluğunu kontrol et ve kaynak belirt
+    2. Güncel bilgileri kullan ve tarih belirt
+    3. Çelişkili bilgiler varsa en güvenilir kaynağı seç
+    4. Emin olmadığın konularda bunu açıkça belirt
+    5. Yanıtı kullanıcı dostu ve anlaşılır bir dille ver
+    6. Gerektiğinde örnekler ve açıklamalar ekle
+    7. Spor, yemek, yapay zeka veya SudoStar ile ilgili konularda ilgili uzmana yönlendir
+    8. Her alanda temel düzeyde bilgi verebilecek şekilde hazırlıklı ol
+    
+    Yanıtı şu formatta JSON olarak döndür:
+    {
+        "text": "Detaylı yanıt metni",
+        "confidence": 0.0-1.0 arası güven skoru,
+        "is_supported": true/false yanıtın desteklenip desteklenmediği,
+        "source": "Bilgi kaynağı (local/url/web_search/openai)",
+        "expert_redirect": "Yönlendirilmesi gereken uzman (varsa)"
+    }"""
 
-def get_user_prompt_template(expert_type: str) -> str:
+def get_user_prompt_template(query_type: str = None) -> str:
     """Kullanıcı prompt şablonunu getir"""
-    templates = {
-        "weather": """Soru: {query}
-        
-        Hava Durumu Verileri:
-        {weather_data}
-        
-        Bu bilgileri kullanarak hava durumunu açıkla ve önerilerde bulun.""",
-        
-        "exchange": """Soru: {query}
-        
-        Döviz Verileri:
-        {exchange_data}
-        
-        Bu verileri analiz edip döviz durumunu açıkla.""",
-        
-        "news": """Soru: {query}
-        
-        Haberler:
-        {news_data}
-        
-        Bu haberleri özetle ve önemli noktaları vurgula."""
-    }
+    return """Soru: {query}
     
-    return templates.get(expert_type, """Soru: {query}
+    Web Araması Sonuçları:
+    {search_results}
     
-    Veriler:
-    {data}
-    
-    Bu bilgileri kullanarak kapsamlı bir yanıt oluştur.""") 
+    Bu bilgileri kullanarak kapsamlı bir yanıt oluştur.
+    Yanıtı verilen JSON formatında döndür.
+    Eğer soru spor, yemek, yapay zeka veya SudoStar ile ilgiliyse, ilgili uzmana yönlendir.""" 
