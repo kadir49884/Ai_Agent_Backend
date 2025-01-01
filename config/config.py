@@ -28,58 +28,52 @@ TAVILY_CONFIG = {
 
 # Application Settings
 APP_CONFIG = {
-    'daily_tweet_limit': 50,
-    'check_interval': 60,  # seconds
-    'max_retries': 3,
-    'retry_delay': 60,  # seconds
-    'cache_enabled': True,
-    'cache_ttl': 3600  # 1 hour
+    'debug': True,
+    'host': '0.0.0.0',
+    'port': int(os.getenv('PORT', 5000))
 }
 
 # Expert System Configuration
 EXPERT_CONFIG = {
     'sports': {
-        'cache_enabled': True,
-        'cache_ttl': 3600,
+        'name': 'SportsExpert',
+        'description': 'Sports and fitness expert',
         'openai': {
             'model': 'gpt-4',
             'max_tokens': 300,
             'temperature': 0.7
-        },
-        'tavily': {
-            'max_results': 5,
-            'search_depth': 'advanced'
         }
     },
     'food': {
-        'cache_enabled': True,
-        'cache_ttl': 3600,
+        'name': 'FoodExpert',
+        'description': 'Food and cooking expert',
         'openai': {
             'model': 'gpt-4',
             'max_tokens': 300,
             'temperature': 0.7
-        },
-        'tavily': {
-            'max_results': 5,
-            'search_depth': 'advanced'
         }
     },
     'ai': {
-        'cache_enabled': True,
-        'cache_ttl': 3600,
+        'name': 'AIExpert',
+        'description': 'AI and technology expert',
         'openai': {
             'model': 'gpt-4',
             'max_tokens': 300,
             'temperature': 0.7
-        },
-        'tavily': {
-            'max_results': 5,
-            'search_depth': 'advanced'
         }
     },
     'sudostar': {
-        'cache_enabled': True,
-        'cache_ttl': 3600,
+        'name': 'SudoStarExpert',
+        'description': 'SudoStar app expert',
+        'openai': {
+            'model': 'gpt-4',
+            'max_tokens': 300,
+            'temperature': 0.7
+        }
+    },
+    'general': {
+        'name': 'GeneralExpert',
+        'description': 'General knowledge expert',
         'openai': {
             'model': 'gpt-4',
             'max_tokens': 300,

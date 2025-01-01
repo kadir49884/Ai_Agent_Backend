@@ -31,9 +31,9 @@ class ExpertSelector:
             - food: For food, cooking, and nutrition related queries
             - ai: For artificial intelligence and technology related queries
             - sudostar: For questions about the SudoStar mobile application
+            - general: For general queries like weather, news, facts etc.
             
-            Respond with ONLY the expert type (sports/food/ai/sudostar) or 'none' if no specific expert is needed.
-            If responding with 'none', also provide a brief direct response to the query."""
+            Respond with ONLY the expert type (sports/food/ai/sudostar/general)."""
             
             response = await self.openai_client.get_completion(system_prompt, query)
             if not response:
@@ -41,15 +41,10 @@ class ExpertSelector:
                 
             # Parse response
             response = response.strip().lower()
-            if response.startswith(('sports', 'food', 'ai', 'sudostar')):
-                return response.split()[0], None
+            if response in ['sports', 'food', 'ai', 'sudostar', 'general']:
+                return response, None
                 
-            # If no specific expert needed, extract direct response
-            if response.startswith('none'):
-                direct_response = response[5:].strip()  # Remove 'none' prefix
-                return None, direct_response if direct_response else None
-                
-            return None, None
+            return 'general', None  # Default to general expert
             
         except Exception as e:
             self.logger.error(f"Error selecting expert: {str(e)}")

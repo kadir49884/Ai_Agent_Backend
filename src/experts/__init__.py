@@ -1,7 +1,15 @@
 """Experts package"""
-from .ai.expert import AIExpert
-from .food.expert import FoodExpert
-from .sports.expert import SportsExpert
-from .sudostar.expert import SudoStarExpert
 
-__all__ = ['AIExpert', 'FoodExpert', 'SportsExpert', 'SudoStarExpert'] 
+from .sports import SportsExpert
+from .food import FoodExpert
+from .ai import AIExpert
+from .sudostar import SudoStarExpert
+from .general import GeneralExpert
+
+__all__ = [
+    'SportsExpert',
+    'FoodExpert',
+    'AIExpert',
+    'SudoStarExpert',
+    'GeneralExpert'
+] 
