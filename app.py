@@ -3,7 +3,7 @@ from flask_cors import CORS
 import os
 import logging
 from dotenv import load_dotenv
-from src.experts import SportsExpert, FoodExpert, AIExpert, GeneralExpert
+from src.experts import SportsExpert, FoodExpert, AIExpert, SudoStarExpert
 from src.core.expert_selector import ExpertSelector
 from config.config import EXPERT_CONFIG, APP_CONFIG
 
@@ -42,7 +42,7 @@ def init_app():
                 'sports': SportsExpert(EXPERT_CONFIG['sports']),
                 'food': FoodExpert(EXPERT_CONFIG['food']),
                 'ai': AIExpert(EXPERT_CONFIG['ai']),
-                'general': GeneralExpert(EXPERT_CONFIG['general']),
+                'sudostar': SudoStarExpert(EXPERT_CONFIG['sudostar']),
                 'selector': ExpertSelector()
             }
             

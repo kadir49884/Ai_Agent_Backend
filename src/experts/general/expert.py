@@ -1,5 +1,6 @@
 """General expert for basic queries"""
 import logging
+import json
 from datetime import datetime
 from typing import Optional, Dict, Any, List
 from ..base_expert import BaseExpert
@@ -23,45 +24,24 @@ class GeneralExpert(BaseExpert):
         """
         query = query.lower().strip()
         
-        # 1. Önce local bilgi kontrolü (tarih gibi sistem bilgileri)
+        # 1. Önce local knowledge'ı kontrol et
         local_response = await self._check_local_knowledge(query)
         if local_response:
             return local_response
             
-        # 2. URL kaynaklarından kontrol (hava durumu API'si gibi)
+        # 2. URL kaynaklarını kontrol et
         url_response = await self._check_url_sources(query)
         if url_response:
             return url_response
             
-        # 3. Web araması yap (güncel haberler, olaylar vs.)
-        web_response = await self._perform_web_search(query)
-        if web_response:
-            return {
-                "text": web_response,
-                "is_supported": True,
-                "confidence": 0.9
-            }
-            
-        # 4. Son çare olarak AI yanıtı
-        ai_response = await self._generate_ai_response(query)
-        if ai_response:
-            return {
-                "text": ai_response,
-                "is_supported": True,
-                "confidence": 0.7
-            }
-            
-        return None
+        # 3. Web araması yap
+        web_results = await self._perform_web_search(query)
+        
+        # 4. AI yanıtı oluştur
+        return await self._generate_response(web_results, query)
         
     async def _check_local_knowledge(self, query: str) -> Optional[Dict[str, Any]]:
-        """Check local system information
-        
-        Args:
-            query (str): User query
-            
-        Returns:
-            Optional[Dict[str, Any]]: Response from local knowledge or None
-        """
+        """Check local knowledge for basic queries like date, time etc."""
         # Tarih sorgusu
         if any(keyword in query for keyword in ["bugün", "tarih", "günlerden", "ayın kaçı"]):
             try:
@@ -78,87 +58,75 @@ class GeneralExpert(BaseExpert):
         return None
         
     async def _check_url_sources(self, query: str) -> Optional[Dict[str, Any]]:
-        """Check specific APIs and URLs for information
-        
-        Args:
-            query (str): User query
-            
-        Returns:
-            Optional[Dict[str, Any]]: Response from URLs or None
-        """
-        # Hava durumu sorgusu
-        if any(keyword in query for keyword in ["hava", "sıcaklık", "derece"]):
-            try:
-                # Burada hava durumu API'si entegre edilebilir
-                # Örnek: OpenWeatherMap, WeatherAPI vs.
-                weather_info = await self._get_weather_info(query)
-                if weather_info:
-                    return {
-                        "text": weather_info,
-                        "is_supported": True,
-                        "confidence": 0.95
-                    }
-            except Exception as e:
-                self.logger.error(f"Error getting weather info: {str(e)}")
-                
-        # Döviz kuru sorgusu
-        if any(keyword in query for keyword in ["döviz", "kur", "euro", "dolar"]):
-            try:
-                # Burada döviz API'si entegre edilebilir
-                exchange_info = await self._get_exchange_rates(query)
-                if exchange_info:
-                    return {
-                        "text": exchange_info,
-                        "is_supported": True,
-                        "confidence": 0.95
-                    }
-            except Exception as e:
-                self.logger.error(f"Error getting exchange rates: {str(e)}")
-                
-        return None
-        
-    async def _get_weather_info(self, query: str) -> Optional[str]:
-        """Get weather information from API
-        
-        Args:
-            query (str): Weather related query
-            
-        Returns:
-            Optional[str]: Weather information or None
-        """
-        # TODO: Implement weather API integration
-        return None
-        
-    async def _get_exchange_rates(self, query: str) -> Optional[str]:
-        """Get currency exchange rates from API
-        
-        Args:
-            query (str): Currency related query
-            
-        Returns:
-            Optional[str]: Exchange rate information or None
-        """
-        # TODO: Implement currency API integration
-        return None
-        
-    async def _perform_web_search(self, query: str) -> Optional[str]:
-        """Perform web search for current information
-        
-        Args:
-            query (str): User query
-            
-        Returns:
-            Optional[str]: Web search results or None
-        """
+        """Check predefined URLs for current information"""
         try:
-            # Tavily API ile web araması
-            if self.web_search:
-                # Araştırma tarihini ekle
-                search_query = f"{query} güncel bilgi"
-                results = await self.web_search.search(search_query)
-                if results:
-                    return results
+            # Hava durumu için AccuWeather
+            if "hava" in query:
+                weather_data = await self._fetch_weather_data()
+                if weather_data:
+                    return {
+                        "text": weather_data,
+                        "is_supported": True,
+                        "confidence": 0.9
+                    }
+                    
+            # Döviz kurları için TCMB
+            if any(keyword in query for keyword in ["döviz", "kur", "euro", "dolar"]):
+                exchange_data = await self._fetch_exchange_rates()
+                if exchange_data:
+                    return {
+                        "text": exchange_data,
+                        "is_supported": True,
+                        "confidence": 0.9
+                    }
+                    
         except Exception as e:
-            self.logger.error(f"Error in web search: {str(e)}")
+            self.logger.error(f"Error checking URL sources: {str(e)}")
             
+        return None
+        
+    async def _generate_response(self, documents: List[str], message: str) -> Optional[Dict[str, Any]]:
+        """Generate response using web search results and AI"""
+        if not documents:
+            return None
+            
+        system_prompt = """Sen genel konularda uzman bir asistansın.
+        Verilen web arama sonuçlarını kullanarak soruya kapsamlı ve doğru bir yanıt üretmelisin.
+        Yanıt üretirken şu kurallara uy:
+        1. Web arama sonuçlarındaki bilgilerin doğruluğunu kontrol et
+        2. Bilgilerin güncelliğini kontrol et
+        3. Çelişkili bilgiler varsa en güvenilir kaynağı seç
+        4. Emin olmadığın bilgileri verme
+        5. Yanıtı kullanıcı dostu ve anlaşılır bir dille ver
+        6. Sayısal veriler varsa bunları düzgün formatla
+        7. Güncel olması gereken bilgiler için tarihi mutlaka belirt"""
+        
+        user_message = f"""Soru: {message}
+        
+        Web arama sonuçları:
+        {chr(10).join(documents)}
+        
+        Bu bilgileri kullanarak soruya yanıt ver."""
+        
+        try:
+            response = await self.openai_client.get_completion(system_prompt, user_message)
+            result = json.loads(response)
+            
+            # Güven skoru yeterince yüksek değilse desteklenmez olarak işaretle
+            if result.get("confidence", 0) < 0.7:
+                result["is_supported"] = False
+                
+            return result
+        except Exception as e:
+            self.logger.error(f"Error generating response: {str(e)}")
+            return None
+            
+    async def _fetch_weather_data(self) -> Optional[str]:
+        """Fetch current weather data"""
+        # TODO: AccuWeather API entegrasyonu
+        return None
+        
+    async def _fetch_exchange_rates(self) -> Optional[str]:
+        """Fetch current exchange rates"""
+        # TODO: TCMB API entegrasyonu
         return None 
