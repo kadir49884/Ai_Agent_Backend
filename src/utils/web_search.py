@@ -37,7 +37,8 @@ class WebSearchClient:
             Optional[str]: Search results summary or None if failed
         """
         try:
-            response = await self.client.search(
+            # Tavily API'si async değil, bu yüzden sync olarak çağırıyoruz
+            response = self.client.search(
                 query=query,
                 max_results=self.max_results,
                 search_depth=self.search_depth
