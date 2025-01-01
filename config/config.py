@@ -41,8 +41,8 @@ EXPERT_CONFIG: Dict[str, Dict[str, Any]] = {
         }
     },
     'general': {
-        'name': 'GeneralExpert',
-        'description': 'Her konuda temel düzeyde bilgi sahibi genel amaçlı AI asistan',
+        'name': 'GeneralAssistant',
+        'description': 'Uzman bulunamayan konularda yardımcı olan genel amaçlı AI asistan',
         'openai': {
             'model': 'gpt-4',
             'max_tokens': 500,  # Daha uzun yanıtlar için

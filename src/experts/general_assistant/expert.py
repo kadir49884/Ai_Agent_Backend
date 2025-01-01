@@ -1,4 +1,4 @@
-"""General expert for handling any type of query"""
+"""General assistant for handling queries that don't match other experts"""
 import logging
 import json
 from typing import Optional, Dict, Any, List, Tuple
@@ -8,11 +8,11 @@ from .sources import (
     get_user_prompt_template
 )
 
-class GeneralExpert(BaseExpert):
-    """Expert for handling any type of query that doesn't match other experts"""
+class GeneralAssistant(BaseExpert):
+    """Assistant for handling any type of query that doesn't match specialized experts"""
     
     def __init__(self, config: Dict[str, Any]):
-        """Initialize general expert"""
+        """Initialize general assistant"""
         super().__init__(config)
         self.logger = logging.getLogger(__name__)
         
